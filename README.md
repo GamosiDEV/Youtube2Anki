@@ -38,6 +38,7 @@ As notas ficam dentro do próprio campo Verso, com formatação embutida, então
 ## Requisitos
 
 - Python 3.10+
+- No Ubuntu, o pacote `python3-venv`
 - Uma chave de API compatível com o padrão OpenAI. O padrão do projeto é o [OpenRouter](https://openrouter.ai), que tem modelos gratuitos (veja [como obter a chave](#como-obter-uma-chave-de-api-do-openrouter)).
 
 ## Configuração
@@ -115,6 +116,41 @@ Depois de alterar o `.env`, **reinicie o `app.py`**: ele regenera o `env.js` que
 
 ## Como rodar
 
+### Ubuntu e outras distribuições Linux
+
+Para usar diretamente da pasta do projeto:
+
+```bash
+chmod +x iniciar.sh
+./iniciar.sh
+```
+
+O iniciador cria um ambiente virtual em `.venv` e instala as dependências nele. Isso evita alterar o Python do sistema e funciona nas versões recentes do Ubuntu, que bloqueiam instalações globais via `pip`.
+
+Na primeira execução, o arquivo `.env` é criado automaticamente. Preencha `AI_API_KEY` e execute `./iniciar.sh` novamente.
+
+Para instalar no menu de aplicativos, sem `sudo`:
+
+```bash
+chmod +x instalar-linux.sh
+./instalar-linux.sh
+```
+
+Depois, abra **Youtube2Anki** no menu de aplicativos ou execute `youtube2anki` no terminal. A instalação fica em `~/.local/share/youtube2anki`. Para remover:
+
+```bash
+~/.local/share/youtube2anki/desinstalar-linux.sh
+```
+
+Se a criação do ambiente virtual falhar no Ubuntu, instale o pacote correspondente:
+
+```bash
+sudo apt update
+sudo apt install python3 python3-venv
+```
+
+### Windows
+
 ```bash
 python app.py
 ```
@@ -166,12 +202,24 @@ static/               CSS e JavaScript da interface
   cards.js            validação dos cards e exportação TSV
   app.js              lógica da interface
 app.py                servidor local (página + API de transcrição + .apkg)
+iniciar.sh            iniciador Linux com ambiente virtual isolado
+instalar-linux.sh     instalação no perfil do usuário e atalho no menu
+desinstalar-linux.sh  remoção da instalação Linux
 server/
   transcript.py       youtube-transcript-api
   anki_export.py      geração do .apkg (genanki)
   config.py           leitura do .env e geração do env.js
 .env.example          modelo de configuração (vai para o git)
 .env / env.js         configuração real (NÃO vão para o git)
+```
+
+## Testes
+
+Depois de preparar o ambiente Linux, execute:
+
+```bash
+./iniciar.sh --prepare-only
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
 ## Segurança
