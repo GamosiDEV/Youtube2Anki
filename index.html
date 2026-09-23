@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Youtube2Anki</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="#" data-action="home">Youtube<span>2</span>Anki</a>
+      <span class="tagline">Transcrições de vídeo → baralhos de flashcards</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="config-alert" class="alert alert-warn" hidden></div>
+
+    <!-- 1. Escolha da fonte -->
+    <section id="screen-home" class="screen">
+      <h1>De onde vem o conteúdo?</h1>
+      <p class="muted">Escolha como enviar o material que vai virar flashcards.</p>
+      <div class="choices">
+        <button class="choice" data-mode="youtube">
+          <span class="choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>
+          </span>
+          <strong>Link do YouTube</strong>
+          <span class="muted">A transcrição é capturada automaticamente do vídeo.</span>
+        </button>
+        <button class="choice" data-mode="text">
+          <span class="choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M5 4h14v2H5V4Zm0 4h14v2H5V8Zm0 4h14v2H5v-2Zm0 4h9v2H5v-2Z"/></svg>
+          </span>
+          <strong>Texto / transcrição</strong>
+          <span class="muted">Cole um texto corrido ou a transcrição de um vídeo.</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. Formulário -->
+    <section id="screen-form" class="screen" hidden>
+      <button class="link-back" data-action="home">← Voltar</button>
+      <form id="deck-form" novalidate>
+        <fieldset class="card-box" id="source-youtube">
+          <legend>Vídeo do YouTube</legend>
+          <label for="yt-url">Link do vídeo <span class="req">*</span></label>
+          <div class="row">
+            <input id="yt-url" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            <button type="button" id="btn-languages" class="btn btn-secondary">Buscar legendas</button>
+          </div>
+          <div id="yt-status" class="field-status" hidden></div>
+          <div id="yt-video" class="video-info" hidden></div>
+
+          <label for="yt-language">Idioma da transcrição <span class="req">*</span></label>
+          <select id="yt-language" disabled>
+            <option value="">Informe o link e busque as legendas</option>
+          </select>
+        </fieldset>
+
+        <fieldset class="card-box" id="source-text">
+          <legend>Texto</legend>
+          <label for="source-textarea">Texto corrido ou transcrição <span class="req">*</span></label>
+          <textarea id="source-textarea" rows="10" placeholder="Cole aqui o texto..."></textarea>
+          <div class="counter"><span id="source-count">0</span> caracteres</div>
+        </fieldset>
+
+        <fieldset class="card-box">
+          <legend>Baralho</legend>
+          <label for="theme">Tema do baralho <span class="req">*</span></label>
+          <input id="theme" type="text" maxlength="100" placeholder="Ex.: Rotina diária, Viagens, Business English">
+
+          <div class="grid-2">
+            <div>
+              <label for="focus">Foco de estudo <span class="opt">(opcional)</span></label>
+              <input id="focus" type="text" maxlength="100" placeholder="Ex.: Phrasal verbs, Present Simple">
+            </div>
+            <div>
+              <label for="count">Quantidade de cards <span class="opt">(opcional)</span></label>
+              <input id="count" type="number" min="1" max="100" step="1" placeholder="Automático (mín. 25)">
+            </div>
+          </div>
+
+          <label for="notes">Observações <span class="opt">(opcional)</span></label>
+          <textarea id="notes" rows="3" maxlength="250" placeholder="Ex.: priorize expressões informais do dia a dia"></textarea>
+          <div class="counter"><span id="notes-count">0</span>/250</div>
+        </fieldset>
+
+        <div id="form-error" class="alert alert-error" hidden></div>
+        <button type="submit" class="btn btn-primary btn-lg">Gerar flashcards</button>
+      </form>
+    </section>
+
+    <!-- 3. Progresso -->
+    <section id="screen-progress" class="screen" hidden>
+      <h1>Gerando seu baralho…</h1>
+      <ol class="steps" id="steps">
+        <li data-step="transcript">Capturando a transcrição do vídeo</li>
+        <li data-step="ai">Enviando para a IA (sanitizar, selecionar frases, traduzir)</li>
+        <li data-step="validate">Validando os cards</li>
+      </ol>
+      <div id="progress-error" class="alert alert-error" hidden></div>
+      <div class="actions" id="progress-actions" hidden>
+        <button class="btn btn-secondary" data-action="back-to-form">← Voltar ao formulário</button>
+        <button class="btn btn-primary" data-action="retry">Tentar novamente</button>
+      </div>
+    </section>
+
+    <!-- 4. Resultado -->
+    <section id="screen-result" class="screen" hidden>
+      <div class="result-head">
+        <div>
+          <h1 id="result-title">Baralho pronto</h1>
+          <p class="muted" id="result-summary"></p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="btn-apkg">Baixar .apkg</button>
+          <button class="btn btn-secondary" id="btn-tsv">Baixar .tsv</button>
+        </div>
+      </div>
+      <div id="result-alert" class="alert alert-warn" hidden></div>
+      <div id="download-error" class="alert alert-error" hidden></div>
+
+      <div class="table-wrap">
+        <table class="cards">
+          <thead>
+            <tr><th>#</th><th>Frente</th><th>Verso</th><th>Notas</th><th></th></tr>
+          </thead>
+          <tbody id="cards-body"></tbody>
+        </table>
+      </div>
+
+      <details class="transcript-details">
+        <summary>Ver transcrição enviada à IA</summary>
+        <pre id="transcript-preview"></pre>
+      </details>
+
+      <div class="actions">
+        <button class="btn btn-secondary" data-action="back-to-form">← Ajustar e gerar de novo</button>
+        <button class="btn btn-secondary" data-action="home">Novo baralho</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- env.js é gerado a partir do .env ao rodar "python app.py" -->
+  <script src="env.js"></script>
+  <script src="static/prompt.js"></script>
+  <script src="static/ai.js"></script>
+  <script src="static/cards.js"></script>
+  <script src="static/app.js"></script>
+</body>
+</html>

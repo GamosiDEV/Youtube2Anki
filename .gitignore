@@ -1,0 +1,16 @@
+# Dados sensíveis
+.env
+env.js
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Arquivos gerados
+*.apkg
+*.tsv
+
+# Material de referência local (skills originais)
+others/
